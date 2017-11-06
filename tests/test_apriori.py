@@ -20,9 +20,6 @@ def test_generate_candidates():
     # Let's restrict the size of the elements for interpretability
     candidates_2 = set([frozenset([2,4]), frozenset([3,4]), frozenset([2,5]), frozenset([2,3])])
 
-    # Wrong, we still have to discard items who have subsets that are not frequent
-    print(generate_candidates(candidates_2, singletons))
-
     # The correct answer is {frozenset({2, 3, 4})}
     print(generate_candidates_from_previous_candidates(3, candidates_2))
 
