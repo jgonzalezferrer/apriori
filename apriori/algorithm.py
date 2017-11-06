@@ -34,7 +34,7 @@ def generate_candidates(prev_candidates, singletons):
     return candidates
 
 
-def generate_candidates_optimizations(prev_candidates, k):
+def generate_candidates_from_previous_candidates(k ,prev_candidates):
     m = k - 2 if k > 1 else 0  # Base case k = 1, ignore: used for check subsets are frequent itemsets.
     candidates = set()
 
@@ -51,6 +51,22 @@ def generate_candidates_optimizations(prev_candidates, k):
 
     return candidates
 
+
+def generate_candidates_from_singletons(k, prev_candidates, singletons):
+    m = k - 2 if k > 1 else 0  # Base case k = 1, ignore: used for check subsets are frequent itemsets.
+    candidates = set()
+
+    for candidate in prev_candidates:
+        for i in singletons:
+            mismatch = False
+            new_candidate = frozenset(candidate).union(i)
+            for combination in itertools.combinations(candidate, m):
+                frequent_tuple = frozenset(combination).union(i)
+                if frequent_tuple not in prev_candidates:
+                    mismatch = True
+            if not mismatch and len(new_candidate) == k: candidates.add(new_candidate)
+
+    return candidates
 
 
 

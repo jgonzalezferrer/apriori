@@ -1,6 +1,6 @@
 from nose.tools import assert_equal
 
-from apriori.algorithm import create_items, generate_candidates, generate_candidates_optimizations
+from apriori.algorithm import create_items, generate_candidates, generate_candidates_from_previous_candidates, generate_candidates_from_singletons
 
 
 def test_create_items():
@@ -24,7 +24,9 @@ def test_generate_candidates():
     print(generate_candidates(candidates_2, singletons))
 
     # The correct answer is {frozenset({2, 3, 4})}
-    print(generate_candidates_optimizations(candidates_2, 3))
+    print(generate_candidates_from_previous_candidates(3, candidates_2))
+
+    print(generate_candidates_from_singletons(3, candidates_2, singletons))
 
     # TODO: still I would like to try it with other cases...
 
