@@ -1,10 +1,9 @@
 from nose.tools import assert_equal
 
-from apriori.algorithm import create_items, generate_candidates, generate_candidates_from_previous_candidates, generate_candidates_from_singletons
+from apriori.algorithm import create_items, generate_candidates
 
 
 def test_create_items():
-
     baskets = [[1,2,3], [2,5,3], [2,5,4,1,1]]
     singletons = create_items(baskets)
 
@@ -12,21 +11,14 @@ def test_create_items():
 
 
 def test_generate_candidates():
+    baskets = [[1,2,3,4,5]]
 
-    baskets = [[1,2,3,4, 5]]
-    singletons = create_items(baskets)
-    candidates_2 = generate_candidates(singletons, singletons)
+    # Let us assume L1 and L2 are the set of truly frequent tuples.
+    l1 = create_items(baskets)
+    l2 = set([frozenset([2,4]), frozenset([3,4]), frozenset([2,5]), frozenset([2,3])])
+    c3 = generate_candidates(l2, l1)
 
-    # Let's restrict the size of the elements for interpretability
-    candidates_2 = set([frozenset([2,4]), frozenset([3,4]), frozenset([2,5]), frozenset([2,3])])
-
-    # The correct answer is {frozenset({2, 3, 4})}
-    print(generate_candidates_from_previous_candidates(3, candidates_2))
-
-    print(generate_candidates_from_singletons(3, candidates_2, singletons))
-
-    # TODO: still I would like to try it with other cases...
-
+    assert_equal(c3, {frozenset({2, 3, 4})})
 
 
 if __name__ == '__main__':
