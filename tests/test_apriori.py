@@ -1,13 +1,13 @@
 from nose.tools import assert_equal
 
-from apriori.algorithm import create_items, generate_candidates
+from apriori.algorithm import create_items, generate_candidates, filter_candidates
 
 
 def test_create_items():
-    baskets = [[1,2,3], [2,5,3], [2,5,4,1,1]]
-    singletons = create_items(baskets)
+    baskets = [[1, 2, 3], [2, 5, 3], [2, 5, 4, 1, 1]]
+    c1 = create_items(baskets)
 
-    assert_equal(singletons, {frozenset({1}), frozenset({2}), frozenset({3}), frozenset({4}), frozenset({5})})
+    assert_equal(c1, {frozenset({1}), frozenset({2}), frozenset({3}), frozenset({4}), frozenset({5})})
 
 
 def test_generate_candidates():
@@ -21,6 +21,25 @@ def test_generate_candidates():
     assert_equal(c3, {frozenset({2, 3, 4})})
 
 
+def test_filter_candidates():
+    baskets = [[1, 2, 3, 5], [2, 5, 3], [2, 5, 4, 1, 1]]
+
+    c1 = create_items(baskets)
+
+    l1 = filter_candidates(c1, 0.5, baskets)
+    # Discard {4}
+    assert_equal(l1, {frozenset({1}), frozenset({2}), frozenset({3}), frozenset({5})})
+
+    c2 = generate_candidates(l1, l1)
+    l2 = filter_candidates(c2, 0.5, baskets)
+    # Discard {1,3}
+    assert_equal(l2, {frozenset({2, 3}), frozenset({2, 5}), frozenset({1, 2}), frozenset({1, 5}), frozenset({3, 5})})
+
+
+    
+    
+
 if __name__ == '__main__':
     test_create_items()
     test_generate_candidates()
+    test_filter_candidates()

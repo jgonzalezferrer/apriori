@@ -1,4 +1,7 @@
 import itertools
+import collections
+
+
 def create_items(baskets):
     """
     Given a set of baskets, create unique set of singleton elements.
@@ -41,6 +44,49 @@ def generate_candidates(prev_candidates, singletons):
             if not mismatch and len(new_candidate) == k: candidates.add(new_candidate)
 
     return candidates
+
+
+def filter_candidates(candidates, support, baskets):
+    occurrences = collections.Counter()
+    n = len(baskets)
+
+    for basket in baskets:
+        for candidate in candidates:
+            if candidate.issubset(basket):
+                occurrences[candidate] += 1
+
+    candidates_return = candidates.copy()
+    for candidate, occurrence in occurrences.items():
+        if occurrence/n < support:
+            candidates_return.discard(candidate)
+
+    return candidates_return
+
+
+def find_frequent_itemsets(baskets, support):
+    c1 = create_items(baskets)
+    l1 = current = filter_candidates(c1, support, baskets)
+
+    frequent_itemsets = set()
+    frequent_itemsets = frequent_itemsets.union(l1)
+
+    while len(current) > 0:
+        ck = generate_candidates(current, c1)
+        lk = filter_candidates(ck, support, baskets)
+
+        frequent_itemsets = frequent_itemsets.union(lk)
+        current = lk
+
+    return frequent_itemsets
+
+
+if __name__ == "__main__":
+    baskets = [[1, 2, 3, 5], [2, 5, 3], [2, 5, 4, 1, 1]]
+    support = 0.5
+
+    print(find_frequent_itemsets(baskets, support))
+
+
 
 
 # def generate_candidates_from_previous_candidates(k ,prev_candidates):
