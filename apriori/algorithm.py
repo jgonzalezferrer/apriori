@@ -97,14 +97,15 @@ def generation_rules(c, itemset, support_itemset):
         if len(candidate_rule.antecedent) == 0 :
             return
 
-        if candidate_rule.confidence >= c or len(candidate_rule.consequent) == 0:
+        if candidate_rule.confidence >= c or len(candidate_rule.consequent) == 0:  # second condition for {a,b,c} -> {}
             if len(candidate_rule.consequent) > 0: rules.add(candidate_rule)
 
             for i in candidate_rule.antecedent:
                 new_antecedent = candidate_rule.antecedent.difference({i})
                 new_consequent = candidate_rule.consequent.union({i})
-                new_confidence = 0
-                if len(new_antecedent) > 0:  # next iteration -> {} -> {a,b,c}
+                if len(new_antecedent) == 0:  # next iteration -> {} -> {a,b,c}
+                    new_confidence = 0
+                else:
                     new_confidence = candidate_rule.confidence / support_itemset[new_antecedent]
 
                 _generation_rules(Rule(new_confidence, new_antecedent, new_consequent))
