@@ -1,6 +1,8 @@
 import itertools
 import collections
 
+from apriori.rule import Rule
+
 
 def create_items(baskets):
     """
@@ -46,7 +48,7 @@ def generate_candidates(prev_candidates, singletons):
     return candidates
 
 
-def prune_candidates(candidates, support, baskets):
+def prune_candidates(candidates, s, baskets):
     occurrences = collections.Counter()
     n = len(baskets)
 
@@ -56,35 +58,79 @@ def prune_candidates(candidates, support, baskets):
                 occurrences[candidate] += 1
 
     candidates_return = candidates.copy()
+    support_return = dict()
     for candidate, occurrence in occurrences.items():
-        if occurrence/n < support:
+        support = occurrence/n
+        if support < s:
             candidates_return.discard(candidate)
+        else:
+            support_return[candidate] = support
 
-    return candidates_return
+    return candidates_return, support_return
 
 
 def find_frequent_itemsets(baskets, support):
-    c1 = create_items(baskets)
-    l1 = current = prune_candidates(c1, support, baskets)
-
     frequent_itemsets = set()
+    support_itemsets = dict()
+
+    c1 = create_items(baskets)
+    l1, support_l1 = prune_candidates(c1, support, baskets)
+
     frequent_itemsets = frequent_itemsets.union(l1)
+    support_itemsets.update(support_l1)
+
+    current = c1
 
     while len(current) > 0:
         ck = generate_candidates(current, c1)
-        lk = prune_candidates(ck, support, baskets)
+        lk, support_lk = prune_candidates(ck, support, baskets)
 
         frequent_itemsets = frequent_itemsets.union(lk)
+        support_itemsets.update(support_lk)
         current = lk
 
-    return frequent_itemsets
+    return frequent_itemsets, support_itemsets
+
+
+def generation_rules(c, itemset, support_itemset):
+    def _generation_rules(candidate_rule):
+        if len(candidate_rule.antecedent) == 0 :
+            return
+
+        if candidate_rule.confidence >= c or len(candidate_rule.consequent) == 0:
+            if len(candidate_rule.consequent) > 0: rules.add(candidate_rule)
+
+            for i in candidate_rule.antecedent:
+                new_antecedent = candidate_rule.antecedent.difference({i})
+                new_consequent = candidate_rule.consequent.union({i})
+                new_confidence = 0
+                if len(new_antecedent) > 0:  # next iteration -> {} -> {a,b,c}
+                    new_confidence = candidate_rule.confidence / support_itemset[new_antecedent]
+
+                _generation_rules(Rule(new_confidence, new_antecedent, new_consequent))
+        return
+
+    candidate_confidence = support_itemset[itemset]
+    candidate_rule = Rule(candidate_confidence, itemset)
+    rules = set()
+    _generation_rules(candidate_rule)
+
+    return rules
 
 
 if __name__ == "__main__":
     baskets = [[1, 2, 3, 5], [2, 5, 3], [2, 5, 4, 1, 1]]
     support = 0.5
 
-    print(find_frequent_itemsets(baskets, support))
+    frequent_itemsets, support_itemsets = find_frequent_itemsets(baskets, support)
+    print(frequent_itemsets)
+    print(support_itemsets)
+
+    rules = generation_rules(0.8, frozenset({1, 2, 5}), support_itemsets)
+    for r in rules:
+        print(r)
+
+
 
 
 
