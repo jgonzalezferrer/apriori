@@ -46,7 +46,7 @@ def generate_candidates(prev_candidates, singletons):
     return candidates
 
 
-def filter_candidates(candidates, support, baskets):
+def prune_candidates(candidates, support, baskets):
     occurrences = collections.Counter()
     n = len(baskets)
 
@@ -65,14 +65,14 @@ def filter_candidates(candidates, support, baskets):
 
 def find_frequent_itemsets(baskets, support):
     c1 = create_items(baskets)
-    l1 = current = filter_candidates(c1, support, baskets)
+    l1 = current = prune_candidates(c1, support, baskets)
 
     frequent_itemsets = set()
     frequent_itemsets = frequent_itemsets.union(l1)
 
     while len(current) > 0:
         ck = generate_candidates(current, c1)
-        lk = filter_candidates(ck, support, baskets)
+        lk = prune_candidates(ck, support, baskets)
 
         frequent_itemsets = frequent_itemsets.union(lk)
         current = lk
