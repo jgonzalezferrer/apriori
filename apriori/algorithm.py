@@ -12,9 +12,8 @@ def create_items(baskets):
     :return:
     """
     items = set()
-    for basket in baskets:
-        for item in basket:
-            items.add(frozenset({item}))
+    for item in baskets.keys():
+        items.add(frozenset({item}))
     return items
 
 
@@ -29,7 +28,7 @@ def generate_candidates(prev_candidates, singletons):
    :param singletons:
    :return:
    """
-    k = len(next(iter(prev_candidates)))+1  # Extract the size of an element from prev to calculate the current iteration.
+    k = len(next(iter(prev_candidates)))+1  # Extract size of an element from prev to calculate the current iteration.
 
     m = k - 2 if k > 1 else 0  # Base case k = 1, ignore: used for check subsets are frequent itemsets.
     candidates = set()
@@ -48,14 +47,20 @@ def generate_candidates(prev_candidates, singletons):
     return candidates
 
 
-def prune_candidates(candidates, s, baskets):
+def prune_candidates(n, candidates, s, items_catalog):
+
     occurrences = collections.Counter()
     n = len(baskets)
 
-    for basket in baskets:
-        for candidate in candidates:
-            if candidate.issubset(basket):
-                occurrences[candidate] += 1
+    import time
+
+    time1 = time.time()
+    for candidate in candidates:
+        baskets_intersection = []
+        for item in candidate:
+            baskets_intersection.append(set(items_catalog[item]))
+        occurrences[candidate] = len(set.intersection(*baskets_intersection))
+    print(time.time()-time1)
 
     candidates_return = candidates.copy()
     support_return = dict()
@@ -63,38 +68,40 @@ def prune_candidates(candidates, s, baskets):
         support = occurrence/n
         if support < s:
             candidates_return.discard(candidate)
-        else:
-            support_return[candidate] = support
 
+        support_return[candidate] = support
     return candidates_return, support_return
 
 
-def find_frequent_itemsets(baskets, support):
+def find_frequent_itemsets(n, support, items_catalog):
     frequent_itemsets = set()
     support_itemsets = dict()
 
-    c1 = create_items(baskets)
-    l1, support_l1 = prune_candidates(c1, support, baskets)
+    c1 = create_items(items_catalog)
+    l1, support_l1 = prune_candidates(n, c1, support, items_catalog)
+    print(len(l1))
 
     frequent_itemsets = frequent_itemsets.union(l1)
     support_itemsets.update(support_l1)
 
-    current = c1
+    current = l1
 
     while len(current) > 0:
         ck = generate_candidates(current, c1)
-        lk, support_lk = prune_candidates(ck, support, baskets)
+        lk, support_lk = prune_candidates(n, ck, support, items_catalog)
 
         frequent_itemsets = frequent_itemsets.union(lk)
         support_itemsets.update(support_lk)
         current = lk
+
+        print('Ck={} and Lk={}'.format(len(ck), len(lk)))
 
     return frequent_itemsets, support_itemsets
 
 
 def generation_rules(c, itemset, support_itemset):
     def _generation_rules(candidate_rule):
-        if len(candidate_rule.antecedent) == 0 :
+        if len(candidate_rule.antecedent) == 0:
             return
 
         if candidate_rule.confidence >= c or len(candidate_rule.consequent) == 0:  # second condition for {a,b,c} -> {}
@@ -119,37 +126,26 @@ def generation_rules(c, itemset, support_itemset):
     return rules
 
 
+def create_items_catalog(baskets):
+    items_catalog = collections.defaultdict(list)
+    for i, basket in enumerate(baskets):
+        for elem in basket:
+            items_catalog[elem].append(i)
+    return items_catalog
+
+
 if __name__ == "__main__":
-    baskets = [[1, 2, 3, 5], [2, 5, 3], [2, 5, 4, 1, 1]]
-    support = 0.5
+    filename = '../data/T10I4D100K.dat'
+    with open(filename, 'r') as f:
+        content = f.read()
 
-    frequent_itemsets, support_itemsets = find_frequent_itemsets(baskets, support)
-    print(frequent_itemsets)
-    print(support_itemsets)
+        baskets = []
+        for line in content.splitlines():
+            baskets.append(line.split())
 
-    rules = generation_rules(0.8, frozenset({1, 2, 5}), support_itemsets)
-    for r in rules:
-        print(r)
+        items_catalog = create_items_catalog(baskets)
 
-
-
-
-
-
-# def generate_candidates_from_previous_candidates(k ,prev_candidates):
-#     m = k - 2 if k > 1 else 0  # Base case k = 1, ignore: used for check subsets are frequent itemsets.
-#     candidates = set()
-#
-#     for candidate in prev_candidates:
-#         for rest in prev_candidates:
-#             for i in rest:
-#                 mismatch = False
-#                 new_candidate = frozenset(candidate).union({i})
-#                 for combination in itertools.combinations(candidate, m):
-#                     frequent_tuple = frozenset(combination).union({i})
-#                     if frequent_tuple not in prev_candidates:
-#                         mismatch = True
-#                 if not mismatch and len(new_candidate) == k: candidates.add(new_candidate)
-#
-#     return candidates
-
+        support = 0.01
+        n = len(baskets)
+        frequent_itemsets, support_itemsets = find_frequent_itemsets(n, support, items_catalog)
+        print(frequent_itemsets)
