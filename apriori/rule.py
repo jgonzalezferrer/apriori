@@ -1,8 +1,8 @@
 class Rule:
-    def __init__(self, confidence, antecedent, consequent=frozenset()):
-        self.confidence = confidence
+    def __init__(self, antecedent, consequent=frozenset(), confidence=-1):
         self.antecedent = antecedent
         self.consequent = consequent
+        self.confidence = confidence
 
     def __str__(self):
         antecedent = [x for x in self.antecedent]

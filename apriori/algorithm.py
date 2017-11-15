@@ -1,7 +1,9 @@
 import itertools
 import collections
+import time
 
 from apriori.rule import Rule
+from apriori.utility import create_items_catalog, create_items_catalog_with_itemsets
 
 
 def create_items(baskets):
@@ -13,7 +15,8 @@ def create_items(baskets):
     """
     items = set()
     for item in baskets.keys():
-        items.add(frozenset({item}))
+        if len(item) == 1:
+            items.add(frozenset({item}))
     return items
 
 
@@ -50,17 +53,16 @@ def generate_candidates(prev_candidates, singletons):
 def prune_candidates(n, candidates, s, items_catalog):
 
     occurrences = collections.Counter()
-    n = len(baskets)
 
-    import time
-
-    time1 = time.time()
     for candidate in candidates:
-        baskets_intersection = []
-        for item in candidate:
-            baskets_intersection.append(set(items_catalog[item]))
-        occurrences[candidate] = len(set.intersection(*baskets_intersection))
-    print(time.time()-time1)
+        if len(items_catalog[candidate]) > 0:
+            occurrences[candidate] = len(items_catalog[candidate])
+        else:
+            baskets_intersection = []
+            for item in candidate:
+                baskets_intersection.append(set(items_catalog[item]))
+            occurrences[candidate] = len(set.intersection(*baskets_intersection))
+
 
     candidates_return = candidates.copy()
     support_return = dict()
@@ -77,9 +79,8 @@ def find_frequent_itemsets(n, support, items_catalog):
     frequent_itemsets = set()
     support_itemsets = dict()
 
-    c1 = create_items(items_catalog)
+    c1 = {frozenset({x}) for x in set(filter(lambda x: len(x) == 1, items_catalog.keys()))}
     l1, support_l1 = prune_candidates(n, c1, support, items_catalog)
-    print(len(l1))
 
     frequent_itemsets = frequent_itemsets.union(l1)
     support_itemsets.update(support_l1)
@@ -87,8 +88,13 @@ def find_frequent_itemsets(n, support, items_catalog):
     current = l1
 
     while len(current) > 0:
-        ck = generate_candidates(current, c1)
+        time_ck = time.time()
+        ck = generate_candidates(current, l1)
+        print('Candidates generation takes: {}'.format(time.time()-time_ck))
+
+        time_lk = time.time()
         lk, support_lk = prune_candidates(n, ck, support, items_catalog)
+        print('Prune takes: {}'.format(time.time()-time_lk))
 
         frequent_itemsets = frequent_itemsets.union(lk)
         support_itemsets.update(support_lk)
@@ -113,25 +119,16 @@ def generation_rules(c, itemset, support_itemset):
                 if len(new_antecedent) == 0:  # next iteration -> {} -> {a,b,c}
                     new_confidence = 0
                 else:
-                    new_confidence = candidate_rule.confidence / support_itemset[new_antecedent]
+                    new_confidence = support_itemset[new_antecedent.union(new_consequent)] / support_itemset[new_antecedent]
 
-                _generation_rules(Rule(new_confidence, new_antecedent, new_consequent))
+                _generation_rules(Rule(new_antecedent, new_consequent, new_confidence))
         return
 
-    candidate_confidence = support_itemset[itemset]
-    candidate_rule = Rule(candidate_confidence, itemset)
+    candidate_rule = Rule(itemset)
     rules = set()
     _generation_rules(candidate_rule)
 
     return rules
-
-
-def create_items_catalog(baskets):
-    items_catalog = collections.defaultdict(list)
-    for i, basket in enumerate(baskets):
-        for elem in basket:
-            items_catalog[elem].append(i)
-    return items_catalog
 
 
 if __name__ == "__main__":
@@ -143,9 +140,24 @@ if __name__ == "__main__":
         for line in content.splitlines():
             baskets.append(line.split())
 
-        items_catalog = create_items_catalog(baskets)
-
+        time999 = time.time()
+        items_catalog = create_items_catalog_with_itemsets(baskets)
+        print("Generate catalog: {}".format(time.time()-time999))
         support = 0.01
         n = len(baskets)
         frequent_itemsets, support_itemsets = find_frequent_itemsets(n, support, items_catalog)
-        print(frequent_itemsets)
+        print(len(frequent_itemsets))
+        #
+        from apyori import apriori
+
+        results = list(apriori(baskets, min_support=0.01))
+
+        print(results)
+        print(len(results))
+
+        # next_candidates = [
+        #     candidate for candidate in tmp_next_candidates
+        #     if all(
+        #         True if frozenset(x) in prev_candidates else False
+        #         for x in combinations(candidate, length - 1))
+        #     ]
