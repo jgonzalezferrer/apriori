@@ -4,6 +4,9 @@ __pycache__/
 # pycharm files
 .idea/
 
+# Jupyter notebook files
+.ipynb_checkpoints/
+
 .DS_Store
 
 # python files
