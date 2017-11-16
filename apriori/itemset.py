@@ -104,35 +104,3 @@ class Itemset:
             current = lk
 
         return frequent_itemsets, support_itemsets
-
-
-if __name__ == "__main__":
-    filename = '../data/T10I4D100K.dat'
-    with open(filename, 'r') as f:
-        content = f.read()
-
-        baskets = []
-        for line in content.splitlines():
-            baskets.append(line.split())
-
-        time999 = time.time()
-
-
-        support = 0.001
-        n = len(baskets)
-        # frequent_itemsets, support_itemsets = find_frequent_itemsets(n, support, items_catalog)
-        # print(len(frequent_itemsets))
-
-        # from apyori import apriori
-        #
-        # results = list(apriori(baskets, min_support=0.001))
-        #
-        # print(len(results))
-
-        # next_candidates = [
-        #     candidate for candidate in tmp_next_candidates
-        #     if all(
-        #         True if frozenset(x) in prev_candidates else False
-        #         for x in combinations(candidate, length - 1))
-
-        #     ]
