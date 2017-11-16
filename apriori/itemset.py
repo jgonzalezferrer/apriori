@@ -67,6 +67,8 @@ class Itemset:
     def run(self, logging_level=logging.INFO, catalog_function=utility.create_items_catalog):
         self.logger.setLevel(logging_level)
 
+        total_time = time.time()
+
         time_catalog = time.time()
         items_catalog = catalog_function(self.baskets)
         self.logger.debug("Generate catalog: {}".format(time.time()-time_catalog))
@@ -103,4 +105,5 @@ class Itemset:
             support_itemsets.update(support_lk)
             current = lk
 
+        self.logger.debug('Total time: {}'.format(time.time()-total_time))
         return frequent_itemsets, support_itemsets
