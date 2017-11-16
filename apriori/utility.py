@@ -21,7 +21,7 @@ def create_items_catalog(baskets, type=''):
     return items_catalog
 
 
-def create_items_catalog_with_itemsets(baskets, type=''):
+def create_items_catalog_with_itemsets(baskets):
     """
     Creates a dictionary where:
         + key: item
@@ -39,3 +39,25 @@ def create_items_catalog_with_itemsets(baskets, type=''):
             items_catalog[frozenset({frozenset({pair_i}), frozenset({pair_j})})].append(i)
 
     return items_catalog
+
+
+def printify(itemset, n=1):
+    msg = "{"
+    iterable_itemset = iter(itemset)
+    for i in range(n):
+        try:
+            element = next(iterable_itemset)
+            msg += "("
+            for j, item in enumerate(element):
+                s = next(iter(item))
+                msg += str(s)
+                if j < len(element) - 1:
+                    msg += ", "
+            msg += ")"
+            if i < n - 1:
+                msg += ", "
+        except:
+            msg = msg[0:-2]
+            break
+    msg += "}"
+    return msg

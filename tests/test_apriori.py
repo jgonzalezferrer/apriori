@@ -1,6 +1,6 @@
 from nose.tools import assert_equal
 
-from apriori.algorithm import create_items, generate_candidates, filter_candidates
+from apriori.itemset import create_items, generate_candidates, filter_candidates
 
 
 def test_create_items():
