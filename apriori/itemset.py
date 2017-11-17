@@ -105,5 +105,5 @@ class Itemset:
             support_itemsets.update(support_lk)
             current = lk
 
-        self.logger.debug('Total time: {}'.format(time.time()-total_time))
+        self.logger.info('Total time: {}'.format(time.time()-total_time))
         return frequent_itemsets, support_itemsets

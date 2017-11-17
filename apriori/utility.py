@@ -21,7 +21,7 @@ def create_items_catalog(baskets, type=''):
     return items_catalog
 
 
-def create_items_catalog_with_itemsets(baskets):
+def create_items_catalog_with_pairs(baskets):
     """
     Creates a dictionary where:
         + key: item
